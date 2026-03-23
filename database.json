@@ -1,0 +1,60 @@
+{
+  "users": [
+    {
+      "id": 1773661939635,
+      "nom": "AKKAL",
+      "prenom": "Abdelkrim",
+      "email": "abdelkrim@gmail.com",
+      "password": "$2b$10$fVwKw./sAAkmRqKBuzvJn.Cn/HpeW5M8J.o4CvssSoGkMIK7y0mbK",
+      "created_at": "2026-03-16T11:52:19.635Z"
+    },
+    {
+      "id": 1773663781521,
+      "nom": "test",
+      "prenom": "test",
+      "email": "test@gmail.com",
+      "password": "$2b$10$iM2xzEfOPkkqI.UJbduPKeeAaX4lK5EaedcFWUFdoPcwmv81aTN5O",
+      "created_at": "2026-03-16T12:23:01.521Z"
+    }
+  ],
+  "stations": [
+    { "id": "A1_1", "level": "A1", "number": 1, "theme": "Greetings", "description": "Salutations & présentations" },
+    { "id": "A1_2", "level": "A1", "number": 2, "theme": "Numbers & Time", "description": "Chiffres, heure, date" },
+    { "id": "A1_3", "level": "A1", "number": 3, "theme": "Family", "description": "Famille & relations" },
+    { "id": "A1_4", "level": "A1", "number": 4, "theme": "Food & Drinks", "description": "Nourriture & boissons" },
+    { "id": "A1_5", "level": "A1", "number": 5, "theme": "Colors & Objects", "description": "Couleurs & objets du quotidien" },
+
+    { "id": "A2_1", "level": "A2", "number": 1, "theme": "Shopping", "description": "Achats & prix" },
+    { "id": "A2_2", "level": "A2", "number": 2, "theme": "Transport", "description": "Déplacements & directions" },
+    { "id": "A2_3", "level": "A2", "number": 3, "theme": "Home", "description": "Maison & meubles" },
+    { "id": "A2_4", "level": "A2", "number": 4, "theme": "Daily Routine", "description": "Activités quotidiennes" },
+    { "id": "A2_5", "level": "A2", "number": 5, "theme": "Weather", "description": "Météo & saisons" },
+
+    { "id": "B1_1", "level": "B1", "number": 1, "theme": "Work & Jobs", "description": "Travail & professions" },
+    { "id": "B1_2", "level": "B1", "number": 2, "theme": "Travel", "description": "Voyages & tourisme" },
+    { "id": "B1_3", "level": "B1", "number": 3, "theme": "Health", "description": "Santé & corps humain" },
+    { "id": "B1_4", "level": "B1", "number": 4, "theme": "Hobbies", "description": "Loisirs & sports" },
+    { "id": "B1_5", "level": "B1", "number": 5, "theme": "Past Events", "description": "Raconter le passé" },
+
+    { "id": "B2_1", "level": "B2", "number": 1, "theme": "Opinion", "description": "Exprimer opinions & débat" },
+    { "id": "B2_2", "level": "B2", "number": 2, "theme": "Media & News", "description": "Actualités & médias" },
+    { "id": "B2_3", "level": "B2", "number": 3, "theme": "Environment", "description": "Environnement & société" },
+    { "id": "B2_4", "level": "B2", "number": 4, "theme": "Technology", "description": "Tech & innovation" },
+    { "id": "B2_5", "level": "B2", "number": 5, "theme": "Conditionals", "description": "Hypothèses & conditions" },
+
+    { "id": "C1_1", "level": "C1", "number": 1, "theme": "Idioms", "description": "Expressions idiomatiques" },
+    { "id": "C1_2", "level": "C1", "number": 2, "theme": "Abstract Ideas", "description": "Concepts abstraits" },
+    { "id": "C1_3", "level": "C1", "number": 3, "theme": "Academic", "description": "Vocabulaire académique" },
+    { "id": "C1_4", "level": "C1", "number": 4, "theme": "Business", "description": "Anglais professionnel" },
+    { "id": "C1_5", "level": "C1", "number": 5, "theme": "Nuance", "description": "Subtilités & registres" },
+
+    { "id": "C2_1", "level": "C2", "number": 1, "theme": "Literature", "description": "Textes littéraires" },
+    { "id": "C2_2", "level": "C2", "number": 2, "theme": "Rhetoric", "description": "Argumentation avancée" },
+    { "id": "C2_3", "level": "C2", "number": 3, "theme": "Cultural Refs", "description": "Références culturelles" },
+    { "id": "C2_4", "level": "C2", "number": 4, "theme": "Wordplay", "description": "Jeux de mots & humour" },
+    { "id": "C2_5", "level": "C2", "number": 5, "theme": "Mastery", "description": "Sophistication totale" }
+  ],
+
+  "exercises": [],
+  "user_progress": []
+}
