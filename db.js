@@ -3,21 +3,22 @@ const path = require('path');
 
 const DB_PATH = path.join(__dirname, 'database.json');
 
-// Créer le fichier si il n'existe pas
+
 if (!fs.existsSync(DB_PATH)) {
-  fs.writeFileSync(DB_PATH, JSON.stringify({
+  const initialData = {
     users: [],
-    exercises: []
-  }, null, 2));
-  console.log('Fichier database.json créé !');
+    stations: [],
+    exercises: [],
+    user_progress: []
+  };
+  fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2));
+  console.log('Fichier database.json créé avec la structure complète !');
 }
 
-// Lire la base de données
 function readDB() {
   return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 }
 
-// Sauvegarder la base de données
 function writeDB(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 }
