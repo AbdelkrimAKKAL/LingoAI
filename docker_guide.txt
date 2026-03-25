@@ -1,0 +1,26 @@
+# 1. Update the package list
+sudo apt update
+
+# 2. Install Docker
+sudo apt install docker.io -y
+
+# 3. Start Docker and make sure it runs on every reboot
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# 4. Verify installation (should show a version number)
+docker --version
+
+
+# give boost memory to vps 
+# 1. Create the swap file (2 Gigabytes)
+sudo fallocate -l 2G /swapfile
+
+# 2. Set the correct permissions (Security)
+sudo chmod 600 /swapfile
+
+# 3. Format it as swap space
+sudo mkswap /swapfile
+
+# 4. Turn it on
+sudo swapon /swapfile

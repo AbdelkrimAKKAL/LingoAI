@@ -1,0 +1,14 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: lingo-db
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      # This keeps the DB internal to the VPS (localhost)
+      - "127.0.0.1:27017:27017"
+    volumes:
+      # This saves your data in a folder named 'mongo-data' in your project
+      - ./mongo-data:/data/db
