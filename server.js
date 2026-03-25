@@ -4,6 +4,10 @@ require('dotenv').config();
 
 const app = express();
 
+const { connectDB } = require('./db');
+
+connectDB(); // Add this before your routes
+
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -11,6 +15,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

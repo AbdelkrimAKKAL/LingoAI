@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = require('express').Router();
 const Groq    = require('groq-sdk');
-const { readDB, writeDB } = require('../db');
+const Exercise = require('../models/Exercise');
 require('dotenv').config();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -50,9 +50,8 @@ async function generate_type(type, level, station_id, theme) {
       throw new Error(`Format invalide pour ${type}`);
     }
 
-    return data.exercises.map((ex, i) => ({
+    return data.exercises.map((ex) => ({
       ...ex,
-      id        : `${station_id}_${type[0]}${i + 1}_${Date.now()}`,
       station_id,
       type
     }));
@@ -61,6 +60,15 @@ async function generate_type(type, level, station_id, theme) {
     console.error(`Erreur génération ${type}:`, err.message, err.stack);
     return [];
   }
+}
+
+
+const fs = require('fs');
+const path = require('path');
+
+function readStations() {
+  const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../database.json'), 'utf8'));
+  return data.stations;
 }
 
 router.get('/', async (req, res) => {
@@ -73,14 +81,13 @@ router.get('/', async (req, res) => {
   const station_id = `${level}_${station}`;
 
   try {
-    const db = readDB();
-
-    const station_info = db.stations.find(s => s.id === station_id);
+    const stations = readStations();
+    const station_info = stations.find(s => s.id === station_id);
     if (!station_info) {
       return res.status(404).json({ error: `Station ${station_id} introuvable` });
     }
 
-    const pool   = db.exercises.filter(e => e.station_id === station_id);
+    const pool = await Exercise.find({ station_id });
     const pool_t = pool.filter(e => e.type === 'traduction');
     const pool_g = pool.filter(e => e.type === 'gap');
     const pool_q = pool.filter(e => e.type === 'qcm');
@@ -92,37 +99,29 @@ router.get('/', async (req, res) => {
     if (!pool_ready) {
       console.log(` Génération du pool ${station_id} — thème: ${station_info.theme}`);
 
-      // Générer seulement les types manquants
       const promises = [];
       if (pool_t.length < 9) promises.push(generate_type('traduction', level, station_id, station_info.theme));
       if (pool_g.length < 9) promises.push(generate_type('gap',        level, station_id, station_info.theme));
       if (pool_q.length < 9) promises.push(generate_type('qcm',        level, station_id, station_info.theme));
 
-      console.log(`⏳ Appel Groq en cours pour ${promises.length} type(s)...`);
-      const results      = await Promise.all(promises);
+      console.log(` Appel Groq en cours pour ${promises.length} type(s)...`);
+      const results = await Promise.all(promises);
       const new_exercises = results.flat();
 
-      console.log(`📦 Résultat génération: ${new_exercises.length} exercices`);
-      new_exercises.forEach(e => console.log(`  - [${e.type}] ${e.phrase?.slice(0,40)}...`));
-
       if (new_exercises.length === 0) {
-        console.error(' Aucun exercice généré — vérifiez la clé GROQ_API_KEY et les logs ci-dessus');
+        console.error(' Aucun exercice généré — vérifiez la clé GROQ_API_KEY');
         return res.status(500).json({ error: 'Impossible de générer les exercices' });
       }
 
-      // Sauvegarder dans database.json
-      db.exercises.push(...new_exercises);
-      try {
-        writeDB(db);
-        console.log(`✅ ${new_exercises.length} exercices sauvegardés — total DB: ${db.exercises.length}`);
-      } catch (writeErr) {
-        console.error(' Erreur writeDB:', writeErr.message);
-      }
+      // Sauvegarder dans MongoDB
+      await Exercise.insertMany(new_exercises);
+      console.log(` ${new_exercises.length} exercices sauvegardés.`);
 
-      // Construire le pool final (existant + nouveau)
-      const final_t = [...pool_t, ...new_exercises.filter(e => e.type === 'traduction')];
-      const final_g = [...pool_g, ...new_exercises.filter(e => e.type === 'gap')];
-      const final_q = [...pool_q, ...new_exercises.filter(e => e.type === 'qcm')];
+      // Re-fetch pool complet
+      const final_pool = await Exercise.find({ station_id });
+      const final_t = final_pool.filter(e => e.type === 'traduction');
+      const final_g = final_pool.filter(e => e.type === 'gap');
+      const final_q = final_pool.filter(e => e.type === 'qcm');
 
       const selected = shuffle([
         ...shuffle(final_t).slice(0, 3),
@@ -133,7 +132,6 @@ router.get('/', async (req, res) => {
       return res.json({ station: station_info, challenges: selected, generated: true });
     }
 
-    // Pool prêt → shuffle + servir 3 de chaque
     const selected = shuffle([
       ...shuffle(pool_t).slice(0, 3),
       ...shuffle(pool_g).slice(0, 3),
@@ -147,5 +145,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
