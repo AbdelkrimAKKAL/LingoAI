@@ -6,6 +6,103 @@ require('dotenv').config();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Fuzzy Answer Checking
+
+function normalize(str, removeAccents = false) {
+  let s = str.toLowerCase().trim();
+  s = s.replace(/[.,!?;:]+$/, '');
+  if (removeAccents) {
+    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  return s;
+}
+
+
+// Distance de Levenshtein entre deux chaînes 
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+  }
+  return dp[m][n];
+}
+
+/**
+ * Vérifie si la réponse est correcte, presque correcte, ou fausse.
+ * @returns {{ result: 'correct'|'almost'|'wrong', message: string, correction: string }}
+ */
+function checkAnswer(userAnswer, solution) {
+  const userNorm  = normalize(userAnswer);
+  const solNorm  = normalize(solution);
+  const userNoAccent = normalize(userAnswer, true);
+  const solNoAccent  = normalize(solution,   true);
+
+  // Exact match (avec ou sans accents)
+  if (userNorm === solNorm || userNoAccent === solNoAccent) {
+    return {
+      result    : 'correct',
+      message   : 'Correct !',
+      correction: solution
+    };
+  }
+
+  // Calcul de la distance (on compare sans accents pour être plus indulgent)
+  const dist = levenshtein(userNoAccent, solNoAccent);
+  const len  = solNoAccent.length;
+
+  // Seuils de tolérance
+  const isAlmost =
+    (dist === 1 && len >= 3) ||
+    (dist === 2 && len >= 6);
+
+  if (isAlmost) {
+    return {
+      result    : 'almost',
+      message   : `Presque ! La bonne réponse est :`,
+      correction: solution
+    };
+  }
+
+  return {
+    result    : 'wrong',
+    message   : 'Incorrect. La bonne réponse était :',
+    correction: solution
+  };
+}
+
+// POST /exercises/check
+router.post('/check', (req, res) => {
+  const { userAnswer, solution, type } = req.body;
+
+  if (!userAnswer || !solution) {
+    return res.status(400).json({ error: 'userAnswer et solution sont requis' });
+  }
+
+  // Pour les QCM et gap (choix multiples), on exige la réponse exacte
+  if (type === 'qcm' || type === 'gap') {
+    const exact = normalize(userAnswer) === normalize(solution);
+    return res.json(
+      exact
+        ? { result: 'correct',  message: 'Correct !',                   correction: solution }
+        : { result: 'wrong',    message: 'Incorrect. La bonne réponse était :', correction: solution }
+    );
+  }
+
+  // Pour les traductions
+  res.json(checkAnswer(userAnswer, solution));
+});
+
+// ---------------------------------------------------------------------------
+
 const LEVELS = {
   A1: "very simple, daily vocabulary, present simple only",
   A2: "simple, short sentences, present and past tense",

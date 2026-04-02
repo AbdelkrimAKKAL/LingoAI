@@ -18,3 +18,18 @@ db.users.countDocuments()
 
 // 6. Show the first 20 items in another collection (replace 'exercises' with actual name)
 db.exercises.find().pretty()
+
+// group by type
+db.exercises.aggregate([
+  {
+    $group: {
+      _id: "$type",
+      count: { $sum: 1 }
+    }
+  }
+])
+
+// assuming const User = require('./models/User');
+await User.findByIdAndDelete(userId);            // delete by id
+await User.deleteOne({ email: 'user@example.com' }); // delete one by filter
+await User.deleteMany({ role: 'test' });     

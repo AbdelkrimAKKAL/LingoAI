@@ -8,7 +8,7 @@ const { connectDB } = require('./db');
 const startApp = async () => {
   try {
     // 1. Force the app to wait for MongoDB
-    await connectDB(); 
+    await connectDB();
 
     // 2. Middleware
     app.use(cors({
@@ -17,10 +17,16 @@ const startApp = async () => {
       allowedHeaders: ['Content-Type', 'Authorization']
     }));
     app.use(express.json());
+    app.use((req, res, next) => {
+      console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+      next();
+    });
 
     // 3. Routes
     app.use('/api/auth', require('./routes/auth'));
     app.use('/api/exercises', require('./routes/exercises'));
+    app.use('/api/user_info', require('./routes/user_info'));
+
 
     app.get('/health', (req, res) => {
       res.json({ status: 'ok', message: 'Serveur en ligne !' });
