@@ -87,7 +87,7 @@ router.post('/check', (req, res) => {
     return res.status(400).json({ error: 'userAnswer et solution sont requis' });
   }
 
-  // Pour les QCM et gap (choix multiples), on exige la réponse exacte
+  // Pour les QCM et gap  on exige la réponse exacte
   if (type === 'qcm' || type === 'gap') {
     const exact = normalize(userAnswer) === normalize(solution);
     return res.json(
