@@ -90,4 +90,42 @@ router.get('/stations/:level', (req, res) => {
 });
 
 
+// Get League Classement
+router.get('/league_classement/:level', async (req, res) => {
+    try {
+        const league_classement = await UserProgress.aggregate([
+            { $match: { current_level: req.params.level } },
+            {
+                $addFields: {
+                    stationsCount: { $size: "$completed_stations" }
+                }
+            },
+            { $sort: { stationsCount: -1 } },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "email",
+                    foreignField: "email",
+                    as: "userDetails"
+                }
+            },
+            { $unwind: "$userDetails" },
+            {
+                $project: {
+                    nom: "$userDetails.nom",
+                    prenom: "$userDetails.prenom",
+                    stationsCount: 1,
+                    _id: 0
+                }
+            },
+            { $limit: 50 }
+        ]);
+
+        res.json({ league_classement });
+    } catch (err) {
+        res.status(500).json({ error: "Erreur serveur", details: err.message });
+    }
+});
+
+
 module.exports = router;
