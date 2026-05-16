@@ -35,6 +35,7 @@ router.get('/get_user_info/:userId', async (req, res) => {
 
 router.post('/set_user_info', async (req, res) => {
     const {
+        userId,
         email,
         current_level,
         current_station,
@@ -42,16 +43,20 @@ router.post('/set_user_info', async (req, res) => {
         scoreByLevel,
         completed_levels } = req.body;
 
-    if (!email) {
-        return res.status(400).json({ error: "email est requis" });
+    if (!userId && !email) {
+        return res.status(400).json({ error: "userId ou email est requis" });
     }
 
     try {
+        // On cherche par userId prioritairement, sinon par email
+        const query = userId ? { userId: userId } : { email: email };
 
         const user_info = await UserProgress.findOneAndUpdate(
-            { email: email },
+            query,
             {
                 $set: {
+                    userId,
+                    email,
                     current_level,
                     current_station,
                     completed_stations,
@@ -114,6 +119,7 @@ router.get('/league_classement/:level', async (req, res) => {
                 $project: {
                     nom: "$userDetails.nom",
                     prenom: "$userDetails.prenom",
+                    email: "$userDetails.email",
                     stationsCount: 1,
                     _id: 0
                 }

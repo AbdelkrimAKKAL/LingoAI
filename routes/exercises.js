@@ -126,7 +126,10 @@ function build_prompt(type, level, theme) {
 {"exercises":[{"phrase":"Sentence with ___","propositions":["correct","wrong1","wrong2"],"solution":"correct"},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."},{"phrase":"...","propositions":["...","...","..."],"solution":"..."}]}`,
 
     qcm: `Generate exactly 9 multiple choice exercises. English sentence, choose the correct French translation. Level: ${level} (${desc}). Topic: ${theme}. All exercises must be about this topic. Return ONLY this JSON:
-{"exercises":[{"phrase":"English sentence","choices":["correct French","wrong1","wrong2","wrong3"],"solution":"correct French"},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."}]}`
+{"exercises":[{"phrase":"English sentence","choices":["correct French","wrong1","wrong2","wrong3"],"solution":"correct French"},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."},{"phrase":"...","choices":["...","...","...","..."],"solution":"..."}]}`,
+
+    listening: `Generate exactly 9 listening exercises (transcription). Generate a short English sentence. The user will hear it and must type it exactly as written. Level: ${level} (${desc}). Topic: ${theme}. Return ONLY this JSON:
+{"exercises":[{"phrase":"English sentence to hear","solution":"English sentence to hear"},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."},{"phrase":"...","solution":"..."}]}`
   };
   return prompts[type];
 }
@@ -188,10 +191,11 @@ router.get('/', async (req, res) => {
     const pool_t = pool.filter(e => e.type === 'traduction');
     const pool_g = pool.filter(e => e.type === 'gap');
     const pool_q = pool.filter(e => e.type === 'qcm');
+    const pool_l = pool.filter(e => e.type === 'listening');
 
-    const pool_ready = pool_t.length >= 9 && pool_g.length >= 9 && pool_q.length >= 9;
+    const pool_ready = pool_t.length >= 9 && pool_g.length >= 9 && pool_q.length >= 9 && pool_l.length >= 9;
 
-    console.log(`Pool ${station_id}: traduction=${pool_t.length}, gap=${pool_g.length}, qcm=${pool_q.length}, ready=${pool_ready}`);
+    console.log(`Pool ${station_id}: traduction=${pool_t.length}, gap=${pool_g.length}, qcm=${pool_q.length}, listening=${pool_l.length}, ready=${pool_ready}`);
 
     if (!pool_ready) {
       console.log(` Génération du pool ${station_id} — thème: ${station_info.theme}`);
@@ -200,6 +204,7 @@ router.get('/', async (req, res) => {
       if (pool_t.length < 9) promises.push(generate_type('traduction', level, station_id, station_info.theme));
       if (pool_g.length < 9) promises.push(generate_type('gap',        level, station_id, station_info.theme));
       if (pool_q.length < 9) promises.push(generate_type('qcm',        level, station_id, station_info.theme));
+      if (pool_l.length < 9) promises.push(generate_type('listening',  level, station_id, station_info.theme));
 
       console.log(` Appel Groq en cours pour ${promises.length} type(s)...`);
       const results = await Promise.all(promises);
@@ -219,20 +224,23 @@ router.get('/', async (req, res) => {
       const final_t = final_pool.filter(e => e.type === 'traduction');
       const final_g = final_pool.filter(e => e.type === 'gap');
       const final_q = final_pool.filter(e => e.type === 'qcm');
+      const final_l = final_pool.filter(e => e.type === 'listening');
 
       const selected = shuffle([
-        ...shuffle(final_t).slice(0, 3),
-        ...shuffle(final_g).slice(0, 3),
-        ...shuffle(final_q).slice(0, 3)
+        ...shuffle(final_t).slice(0, 2),
+        ...shuffle(final_g).slice(0, 2),
+        ...shuffle(final_q).slice(0, 2),
+        ...shuffle(final_l).slice(0, 3)
       ]);
 
       return res.json({ station: station_info, challenges: selected, generated: true });
     }
 
     const selected = shuffle([
-      ...shuffle(pool_t).slice(0, 3),
-      ...shuffle(pool_g).slice(0, 3),
-      ...shuffle(pool_q).slice(0, 3)
+      ...shuffle(pool_t).slice(0, 2),
+      ...shuffle(pool_g).slice(0, 2),
+      ...shuffle(pool_q).slice(0, 2),
+      ...shuffle(pool_l).slice(0, 3)
     ]);
 
     res.json({ station: station_info, challenges: selected, generated: false });
